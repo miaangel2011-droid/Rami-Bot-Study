@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyBot 4ème ✨</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;700&display=swap');
+  :root {
+    --violet:#7C3AED; --violet-light:#A78BFA; --rose:#EC4899;
+    --cyan:#06B6D4; --vert:#10B981; --orange:#F59E0B;
+    --bg:#0F0A1E; --card:#1A1130; --card2:#221843;
+    --text:#F1F0FF; --muted:#9CA3AF; --border:#3B2D6A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+  /* === SETUP SCREEN === */
+  .setup-screen{
+    position:fixed;inset:0;background:var(--bg);z-index:999;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .setup-card{
+    background:var(--card);border:1px solid var(--border);border-radius:24px;
+    padding:32px 24px;max-width:400px;width:100%;text-align:center;
+  }
+  .setup-logo{font-size:3rem;margin-bottom:12px}
+  .setup-title{
+    font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700;
+    background:linear-gradient(135deg,var(--violet-light),var(--rose));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    margin-bottom:8px;
+  }
+  .setup-sub{color:var(--muted);font-size:0.88rem;margin-bottom:24px;line-height:1.5}
+  .setup-label{font-size:0.75rem;font-weight:800;color:var(--violet-light);text-transform:uppercase;letter-spacing:.08em;text-align:left;margin-bottom:8px;display:block}
+  .setup-input{
+    width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;
+    padding:13px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:0.9rem;
+    outline:none;transition:border-color .2s;margin-bottom:16px;
+  }
+  .setup-input:focus{border-color:var(--violet)}
+  .setup-input::placeholder{color:var(--muted)}
+  .setup-btn{
+    width:100%;background:linear-gradient(135deg,var(--violet),var(--rose));
+    border:none;border-radius:12px;padding:14px;color:#fff;
+    font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;
+    cursor:pointer;transition:all .2s;
+  }
+  .setup-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,.4)}
+  .setup-hint{font-size:0.72rem;color:var(--muted);margin-top:12px;line-height:1.4}
+  .setup-hint a{color:var(--violet-light);text-decoration:none}
+
+  /* === HEADER === */
+  .header{
+    background:linear-gradient(135deg,#1A0A3C,var(--bg));
+    border-bottom:1px solid var(--border);padding:14px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);
+  }
+  .logo{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,var(--violet-light),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .header-right{display:flex;gap:8px;align-items:center}
+  .header-badge{background:linear-gradient(135deg,var(--violet),var(--rose));padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700}
+  .api-status{width:8px;height:8px;border-radius:50%;background:var(--vert);box-shadow:0 0 6px var(--vert)}
+
+  /* === NAV === */
+  .nav-subjects{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;scrollbar-width:none;background:var(--card);border-bottom:1px solid var(--border)}
+  .nav-subjects::-webkit-scrollbar{display:none}
+  .subject-btn{flex-shrink:0;padding:6px 13px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.76rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .subject-btn:hover{border-color:var(--violet-light);color:var(--violet-light)}
+  .subject-btn.active{background:linear-gradient(135deg,var(--violet),var(--rose));border-color:transparent;color:#fff;box-shadow:0 0 12px rgba(124,58,237,.4)}
+
+  /* === MAIN === */
+  .main{max-width:700px;margin:0 auto;padding:16px 14px 100px}
+
+  /* === STATS === */
+  .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center}
+  .stat-value{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--violet-light),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .stat-label{font-size:0.68rem;color:var(--muted);font-weight:700;margin-top:2px}
+
+  /* === UPLOAD === */
+  .section-label{font-size:0.73rem;font-weight:800;color:var(--violet-light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}
+  .upload-zone{border:2px dashed var(--border);border-radius:16px;padding:22px 16px;text-align:center;cursor:pointer;transition:all .3s;background:var(--card);margin-bottom:16px}
+  .upload-zone:hover,.upload-zone.dragging{border-color:var(--violet);background:rgba(124,58,237,.07);box-shadow:0 0 18px rgba(124,58,237,.15)}
+  .upload-icon{font-size:2rem;margin-bottom:8px}
+  .upload-title{font-size:0.95rem;font-weight:800;margin-bottom:4px}
+  .upload-sub{font-size:0.77rem;color:var(--muted);margin-bottom:12px}
+  .upload-btn{background:linear-gradient(135deg,var(--violet),var(--violet-light));color:#fff;border:none;padding:9px 20px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.85rem;cursor:pointer}
+  #fileInput{display:none}
+  .preview-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .preview-item{position:relative;width:72px;height:72px}
+  .preview-item img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:2px solid var(--violet)}
+  .preview-remove{position:absolute;top:-5px;right:-5px;width:18px;height:18px;background:var(--rose);border:none;border-radius:50%;color:#fff;font-size:0.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900}
+  .clear-images-btn{display:none;margin-top:8px;padding:5px 12px;border-radius:10px;border:1px solid var(--rose);background:transparent;color:var(--rose);font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer}
+
+  /* === MODES === */
+  .mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .mode-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:13px;cursor:pointer;transition:all .2s;text-align:center}
+  .mode-card:hover{border-color:var(--violet-light)}
+  .mode-card.selected{border-color:var(--violet);background:rgba(124,58,237,.12);box-shadow:0 0 14px rgba(124,58,237,.2)}
+  .mode-icon{font-size:1.5rem;margin-bottom:5px}
+  .mode-name{font-size:0.83rem;font-weight:800;margin-bottom:2px}
+  .mode-desc{font-size:0.7rem;color:var(--muted)}
+
+  /* === CHAT === */
+  .chat-section{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+  .chat-header{background:linear-gradient(135deg,var(--violet),#5B21B6);padding:13px 16px;display:flex;align-items:center;gap:10px}
+  .bot-avatar{width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+  .bot-info .bot-name{font-weight:800;font-size:0.92rem}
+  .bot-info .bot-status{font-size:0.7rem;opacity:.8}
+  .subject-tag{margin-left:auto;background:rgba(255,255,255,.18);padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;white-space:nowrap}
+  .chat-messages{height:400px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+  /* === MESSAGES === */
+  .msg{display:flex;gap:9px;align-items:flex-start;animation:fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .msg.user{flex-direction:row-reverse}
+  .msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0}
+  .msg.bot .msg-avatar{background:linear-gradient(135deg,var(--violet),var(--rose))}
+  .msg.user .msg-avatar{background:linear-gradient(135deg,var(--cyan),var(--vert))}
+  .msg-bubble{max-width:78%;padding:11px 13px;border-radius:14px;font-size:0.86rem;line-height:1.55}
+  .msg.bot .msg-bubble{background:var(--card2);border:1px solid var(--border);border-top-left-radius:4px}
+  .msg.user .msg-bubble{background:linear-gradient(135deg,var(--violet),var(--rose));border-top-right-radius:4px}
+  .msg-image{max-width:180px;border-radius:10px;border:2px solid var(--violet);margin-top:5px;display:block}
+
+  /* === TYPING === */
+  .typing-indicator{display:flex;gap:4px;padding:11px 13px;background:var(--card2);border:1px solid var(--border);border-radius:14px;width:fit-content;border-top-left-radius:4px}
+  .typing-dot{width:6px;height:6px;border-radius:50%;background:var(--violet-light);animation:typing 1.2s infinite}
+  .typing-dot:nth-child(2){animation-delay:.2s}
+  .typing-dot:nth-child(3){animation-delay:.4s}
+  @keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+  /* === QCM === */
+  .qcm-block{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:15px;width:100%;animation:fadeIn .3s ease}
+  .qcm-question{font-weight:800;font-size:0.88rem;margin-bottom:12px;color:var(--text);line-height:1.4}
+  .q-num{background:linear-gradient(135deg,var(--violet),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:0.75rem;font-weight:900;display:block;margin-bottom:4px}
+  .qcm-options{display:flex;flex-direction:column;gap:7px}
+  .qcm-option{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-family:'Nunito',sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer;text-align:left;transition:all .2s;display:flex;align-items:center;gap:9px}
+  .qcm-option:hover:not(:disabled){border-color:var(--violet-light);background:rgba(124,58,237,.1)}
+  .qcm-option.correct{border-color:var(--vert);background:rgba(16,185,129,.15);color:#6EE7B7}
+  .qcm-option.wrong{border-color:var(--rose);background:rgba(236,72,153,.12);color:#FBCFE8}
+  .qcm-option.revealed{border-color:var(--vert);background:rgba(16,185,129,.08);opacity:.7}
+  .qcm-option:disabled{cursor:default}
+  .opt-letter{width:21px;height:21px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;flex-shrink:0}
+  .qcm-option.correct .opt-letter{background:var(--vert);color:#fff}
+  .qcm-option.wrong .opt-letter{background:var(--rose);color:#fff}
+  .qcm-feedback{margin-top:11px;padding:9px 13px;border-radius:10px;font-size:0.81rem;font-weight:700;line-height:1.4;display:none}
+  .qcm-feedback.correct{background:rgba(16,185,129,.15);border:1px solid var(--vert);color:#6EE7B7}
+  .qcm-feedback.wrong{background:rgba(236,72,153,.12);border:1px solid var(--rose);color:#FBCFE8}
+
+  /* === FLASHCARD === */
+  .flashcard{background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:all .3s;animation:fadeIn .3s ease;text-align:center;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  .flashcard:hover{border-color:var(--violet-light)}
+  .flashcard.flipped{border-color:var(--vert);background:rgba(16,185,129,.08)}
+  .fc-side{font-size:0.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .fc-content{font-size:0.95rem;font-weight:700;line-height:1.4}
+  .fc-hint{font-size:0.72rem;color:var(--muted)}
+
+  /* === INPUT === */
+  .chat-input-area{padding:12px 14px;border-top:1px solid var(--border);background:var(--card)}
+  .quick-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}
+  .quick-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.73rem;font-weight:700;cursor:pointer;transition:all .2s}
+  .quick-btn:hover{border-color:var(--violet-light);color:var(--violet-light);background:rgba(124,58,237,.08)}
+  .input-row{display:flex;gap:9px;align-items:flex-end}
+  .chat-input{flex:1;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:11px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:0.86rem;resize:none;outline:none;transition:border-color .2s;max-height:110px;min-height:44px}
+  .chat-input:focus{border-color:var(--violet)}
+  .chat-input::placeholder{color:var(--muted)}
+  .send-btn{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--violet),var(--rose));border:none;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+  .send-btn:hover{transform:scale(1.05);box-shadow:0 4px 14px rgba(124,58,237,.4)}
+  .send-btn:disabled{opacity:.35;transform:none}
+
+  /* === RESET BTN === */
+  .reset-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
+  .reset-btn:hover{border-color:var(--rose);color:var(--rose)}
+
+  /* === TOAST & LOADING === */
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--border);padding:9px 18px;border-radius:20px;font-size:0.83rem;font-weight:700;opacity:0;transition:all .3s;z-index:300;white-space:nowrap;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.error{border-color:var(--rose);color:#FBCFE8}
+  .toast.success{border-color:var(--vert);color:#6EE7B7}
+
+  /* === PROGRESS === */
+  .progress-section{margin-bottom:16px}
+  .progress-bar-wrap{background:var(--card2);border-radius:10px;height:8px;overflow:hidden;margin-top:6px}
+  .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--rose));border-radius:10px;transition:width .5s ease}
+
+  @media(min-width:600px){.mode-grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- ====== SETUP SCREEN ====== -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-card">
+    <div class="setup-logo">📚</div>
+    <div class="setup-title">StudyBot 4ème</div>
+    <p class="setup-sub">Ton assistant IA pour réviser toutes les matières — maths, français, anglais, espagnol et plus encore !</p>
+
+    <label class="setup-label">🔑 Ta clé API Anthropic</label>
+    <input type="password" class="setup-input" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
+
+    <label class="setup-label">👤 Ton prénom (facultatif)</label>
+    <input type="text" class="setup-input" id="nameInput" placeholder="ex : Léa" maxlength="20">
+
+    <button class="setup-btn" onclick="startApp()">🚀 Commencer à réviser !</button>
+    <p class="setup-hint">
+      Clé API gratuite sur <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>
+      Ta clé est stockée uniquement sur cet appareil 🔒
+    </p>
+  </div>
+</div>
+
+<!-- ====== APP ====== -->
+<div id="appContent" style="display:none">
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">📚 StudyBot 4ème</div>
+  <div class="header-right">
+    <div class="api-status" id="apiStatus" title="API connectée"></div>
+    <div class="header-badge">✨ IA</div>
+    <button class="reset-btn" onclick="resetApp()">🔑 Clé</button>
+  </div>
+</div>
+
+<!-- Nav matières -->
+<div class="nav-subjects">
+  <button class="subject-btn active" onclick="selectSubject(this,'Général','🌟')">🌟 Général</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Mathématiques','📐')">📐 Maths</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Français','📝')">📝 Français</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Histoire-Géo','🌍')">🌍 Hist-Géo</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Sciences','🔬')">🔬 Sciences</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Anglais','🇬🇧')">🇬🇧 Anglais</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Espagnol','🇪🇸')">🇪🇸 Espagnol</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Physique-Chimie','⚗️')">⚗️ Physique</button>
+  <button class="subject-btn" onclick="selectSubject(this,'SVT','🌿')">🌿 SVT</button>
+  <button class="subject-btn" onclick="selectSubject(this,'Technologie','💻')">💻 Techno</button>
+</div>
+
+<div class="main">
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-value" id="statQuestions">0</div>
+      <div class="stat-label">Questions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statScore" style="background:linear-gradient(135deg,#10B981,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent">0%</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statStreak" style="background:linear-gradient(135deg,#F59E0B,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🔥0</div>
+      <div class="stat-label">Série</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section" id="progressSection" style="display:none">
+    <div class="section-label">📊 Progression de la session</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Upload -->
+  <div class="section-label">📸 Importer une leçon ou un exercice</div>
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-icon">🖼️</div>
+    <div class="upload-title">Photo de leçon ou exercice</div>
+    <div class="upload-sub">Capture d'écran, photo de cahier, fiche de révision…</div>
+    <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('fileInput').click()">📂 Choisir une image</button>
+    <div class="preview-images" id="previewImages"></div>
+    <button class="clear-images-btn" id="clearImagesBtn" onclick="event.stopPropagation();clearImages()">🗑️ Supprimer toutes les images</button>
+  </div>
+  <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this.files)">
+
+  <!-- Modes -->
+  <div class="section-label">🎯 Mode d'étude</div>
+  <div class="mode-grid">
+    <div class="mode-card selected" onclick="selectMode(this,'qcm')">
+      <div class="mode-icon">🧠</div>
+      <div class="mode-name">QCM</div>
+      <div class="mode-desc">4 choix possibles</div>
+    </div>
+    <div class="mode-card" onclick="selectMode(this,'vrai-faux')">
+      <div class="mode-icon">✅</div>
+      <div class="mode-name">Vrai / Faux</div>
+      <div class="mode-desc">Test rapide</div>
+    </div>
+    <div class="mode-card" onclick="selectMode(this,'texte')">
+      <div class="mode-icon">✍️</div>
+      <div class="mode-name">Réponse libre</div>
+      <div class="mode-desc">Développer ses idées</div>
+    </div>
+    <div class="mode-card" onclick="selectMode(this,'flash')">
+      <div class="mode-icon">⚡</div>
+      <div class="mode-name">Flashcards</div>
+      <div class="mode-desc">Mémorisation rapide</div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-section">
+    <div class="chat-header">
+      <div class="bot-avatar">🤖</div>
+      <div class="bot-info">
+        <div class="bot-name">StudyBot</div>
+        <div class="bot-status" id="botStatusText">Prêt à t'aider !</div>
+      </div>
+      <div class="subject-tag" id="subjectTag">🌟 Général</div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-area">
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="quickAction('Génère 5 questions QCM sur cette matière')">🎲 5 QCM</button>
+        <button class="quick-btn" onclick="quickAction('Explique-moi simplement ce concept')">💡 Expliquer</button>
+        <button class="quick-btn" onclick="quickAction('Donne-moi un exercice pratique')">✏️ Exercice</button>
+        <button class="quick-btn" onclick="quickAction('Fais un résumé clair de la leçon')">📋 Résumé</button>
+        <button class="quick-btn" onclick="quickAction('Génère 10 questions de révision intensive')">🚀 Révision ×10</button>
+        <button class="quick-btn" onclick="quickAction('Donne-moi des astuces mémo pour retenir facilement')">🧩 Astuces mémo</button>
+      </div>
+      <div class="input-row">
+        <textarea class="chat-input" id="chatInput" placeholder="Pose une question ou demande des exercices…" rows="1"
+          onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /appContent -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================
+   STATE
+========================================= */
+const S = {
+  apiKey: '',
+  userName: '',
+  subject: 'Général',
+  subjectEmoji: '🌟',
+  mode: 'qcm',
+  images: [],       // {url, b64}
+  history: [],      // [{role,content}]
+  total: 0,
+  correct: 0,
+  streak: 0,
+  busy: false
+};
+
+const SYSTEM = `Tu es StudyBot, un assistant éducatif bienveillant, motivant et pédagogue pour une élève de 4ème (13-14 ans) en France.
+
+Matières couvertes : Mathématiques, Français (grammaire, conjugaison, orthographe, lecture), Histoire-Géographie, SVT, Physique-Chimie, Technologie, Anglais (niveau B1), Espagnol (niveau A2/B1).
+
+RÈGLES :
+- Adapte le niveau au programme de 4ème
+- Sois encourageant, positif, bienveillant
+- Donne toujours une explication après chaque réponse
+- Pour les langues étrangères, intègre naturellement la langue cible
+
+━━━ FORMAT QCM (réponds UNIQUEMENT en JSON brut, sans balises markdown) ━━━
+{"type":"qcm","questions":[{"question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correct":0,"explanation":"..."}]}
+
+━━━ FORMAT VRAI/FAUX ━━━
+{"type":"vrai-faux","questions":[{"question":"...","correct":true,"explanation":"..."}]}
+
+━━━ FORMAT FLASHCARDS ━━━
+{"type":"flashcard","cards":[{"front":"...","back":"..."}]}
+
+━━━ FORMAT RÉPONSE LIBRE ━━━
+Texte normal, structuré, avec des emojis pour rendre la lecture agréable.
+
+Si une image est fournie, analyse son contenu et base tes questions/explications dessus.
+Si le prénom de l'élève est fourni, utilise-le de temps en temps pour personnaliser.`;
+
+/* =========================================
+   SETUP
+========================================= */
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('studybot_key');
+  const name  = localStorage.getItem('studybot_name');
+  if (saved) {
+    S.apiKey   = saved;
+    S.userName = name || '';
+    showApp();
+  }
+});
+
+function startApp() {
+  const key  = document.getElementById('apiKeyInput').value.trim();
+  const name = document.getElementById('nameInput').value.trim();
+  if (!key.startsWith('sk-ant')) {
+    showToast('❌ Clé API invalide (commence par sk-ant…)', 'error'); return;
+  }
+  S.apiKey   = key;
+  S.userName = name;
+  localStorage.setItem('studybot_key', key);
+  localStorage.setItem('studybot_name', name);
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('appContent').style.display  = 'block';
+  addWelcome();
+  setupDrop();
+}
+
+function resetApp() {
+  if (!confirm('Changer de clé API ?')) return;
+  localStorage.removeItem('studybot_key');
+  location.reload();
+}
+
+/* =========================================
+   WELCOME
+========================================= */
+function addWelcome() {
+  const name = S.userName ? ` ${S.userName}` : '';
+  addBot(`Salut${name} ! 👋 Je suis <strong>StudyBot</strong>, ton assistant pour réviser en 4ème !<br><br>
+📸 <strong>Importe une photo</strong> de ta leçon → je génère des questions dessus.<br>
+🎯 <strong>Choisis ton mode</strong> : QCM, Vrai/Faux, Flashcards, Réponse libre.<br>
+💬 Ou <strong>pose-moi directement</strong> une question sur n'importe quelle matière.<br><br>
+On commence quand tu veux ! 🚀`);
+}
+
+/* =========================================
+   SUBJECT & MODE
+========================================= */
+function selectSubject(btn, name, emoji) {
+  document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  S.subject      = name;
+  S.subjectEmoji = emoji;
+  document.getElementById('subjectTag').textContent = `${emoji} ${name}`;
+}
+
+function selectMode(card, mode) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  S.mode = mode;
+}
+
+/* =========================================
+   UPLOAD
+========================================= */
+function setupDrop() {
+  const z = document.getElementById('uploadZone');
+  z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('dragging'); });
+  z.addEventListener('dragleave', () => z.classList.remove('dragging'));
+  z.addEventListener('drop', e => { e.preventDefault(); z.classList.remove('dragging'); handleFiles(e.dataTransfer.files); });
+}
+
+function handleFiles(files) {
+  Array.from(files).forEach(f => {
+    if (!f.type.startsWith('image/')) return;
+    const r = new FileReader();
+    r.onload = e => {
+      S.images.push({ url: e.target.result, b64: e.target.result.split(',')[1], type: f.type });
+      renderPreviews();
+      showToast('📸 Image ajoutée !', 'success');
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function renderPreviews() {
+  const c = document.getElementById('previewImages');
+  c.innerHTML = '';
+  S.images.forEach((img, i) => {
+    const d = document.createElement('div');
+    d.className = 'preview-item';
+    d.innerHTML = `<img src="${img.url}" alt="img"><button class="preview-remove" onclick="removeImg(${i})">✕</button>`;
+    c.appendChild(d);
+  });
+  document.getElementById('clearImagesBtn').style.display = S.images.length ? 'inline-block' : 'none';
+}
+
+function removeImg(i) { S.images.splice(i, 1); renderPreviews(); }
+function clearImages() { S.images = []; renderPreviews(); document.getElementById('fileInput').value = ''; }
+
+/* =========================================
+   QUICK ACTIONS
+========================================= */
+function quickAction(t) { document.getElementById('chatInput').value = t; sendMessage(); }
+
+/* =========================================
+   SEND MESSAGE
+========================================= */
+async function sendMessage() {
+  const inp = document.getElementById('chatInput');
+  const txt = inp.value.trim();
+  if (!txt || S.busy) return;
+  inp.value = ''; autoResize(inp);
+
+  const modeHint    = getModeHint();
+  const subjHint    = S.subject !== 'Général' ? `Matière : ${S.subject}. ` : '';
+  const nameHint    = S.userName ? `Prénom de l'élève : ${S.userName}. ` : '';
+  const fullPrompt  = nameHint + subjHint + modeHint + txt;
+
+  // Build content
+  let content;
+  if (S.images.length > 0) {
+    content = [
+      ...S.images.map(img => ({ type:'image', source:{ type:'base64', media_type: img.type || 'image/jpeg', data: img.b64 }})),
+      { type:'text', text: fullPrompt }
+    ];
+  } else {
+    content = fullPrompt;
+  }
+
+  // Show user message
+  addUser(txt);
+
+  // Push to history
+  S.history.push({ role:'user', content });
+
+  await callAPI();
+}
+
+function getModeHint() {
+  if (S.mode === 'qcm')       return 'Génère des QCM (réponds en JSON brut). ';
+  if (S.mode === 'vrai-faux') return 'Génère des questions Vrai/Faux (JSON brut). ';
+  if (S.mode === 'flash')     return 'Génère des flashcards (JSON brut). ';
+  return '';
+}
+
+/* =========================================
+   API CALL
+========================================= */
+async function callAPI() {
+  S.busy = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('botStatusText').textContent = 'En train de réfléchir… 🧠';
+  showTyping();
+
+  // Keep last 10 turns to avoid token overflow
+  const msgs = S.history.slice(-10);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': S.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        system: SYSTEM,
+        messages: msgs
+      })
+    });
+
+    const data = await res.json();
+    removeTyping();
+
+    if (data.error) {
+      const msg = data.error.message || 'Erreur API';
+      addBot(`❌ Erreur API : ${msg}`);
+      // Remove last push so user can retry
+      S.history.pop();
+      showToast('❌ ' + msg, 'error');
+    } else {
+      const rawText = (data.content || []).map(b => b.text || '').join('');
+      S.history.push({ role:'assistant', content: rawText });
+      processResponse(rawText);
+    }
+  } catch(e) {
+    removeTyping();
+    addBot('❌ Impossible de contacter l\'API. Vérifie ta clé et ta connexion internet.');
+    S.history.pop();
+    showToast('❌ Erreur réseau', 'error');
+    console.error(e);
+  } finally {
+    S.busy = false;
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('botStatusText').textContent = 'Prêt à t\'aider !';
+  }
+}
+
+/* =========================================
+   PROCESS RESPONSE
+========================================= */
+function processResponse(text) {
+  // Strip possible markdown code fences
+  const clean = text.replace(/```json|```/gi, '').trim();
+  const match = clean.match(/\{[\s\S]*\}/);
+  if (match) {
+    try {
+      const p = JSON.parse(match[0]);
+      if (p.type === 'qcm'       && p.questions) { renderQCM(p.questions);       return; }
+      if (p.type === 'vrai-faux' && p.questions) { renderVF(p.questions);        return; }
+      if (p.type === 'flashcard' && p.cards)     { renderFlash(p.cards);         return; }
+    } catch(e) {}
+  }
+  addBot(text);
+}
+
+/* =========================================
+   QCM
+========================================= */
+function renderQCM(qs) {
+  const wrap = document.getElementById('chatMessages');
+  const L = ['A','B','C','D'];
+  qs.forEach((q, qi) => {
+    S.total++;
+    const id = `qcm_${Date.now()}_${qi}`;
+    const d  = document.createElement('div');
+    d.className = 'qcm-block'; d.id = id;
+    d.innerHTML = `
+      <div class="qcm-question"><span class="q-num">QUESTION ${qi+1}</span>${esc(q.question)}</div>
+      <div class="qcm-options">
+        ${q.options.map((o,oi) => `
+          <button class="qcm-option" onclick="answerQCM('${id}',${oi},${q.correct},'${safeStr(q.explanation)}')">
+            <span class="opt-letter">${L[oi]}</span>${esc(o.replace(/^[A-D]\.\s*/,''))}
+          </button>`).join('')}
+      </div>
+      <div class="qcm-feedback" id="${id}_fb"></div>`;
+    wrap.appendChild(d);
+  });
+  updateStats(); scrollBot(); updateProgress();
+  showToast(`🧠 ${qs.length} question(s) générée(s) !`, 'success');
+}
+
+function answerQCM(id, chosen, correct, expl) {
+  const b   = document.getElementById(id);
+  const ops = b.querySelectorAll('.qcm-option');
+  const fb  = document.getElementById(`${id}_fb`);
+  ops.forEach(o => o.disabled = true);
+  const ok = chosen === correct;
+  ops[chosen].classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) ops[correct].classList.add('revealed');
+  fb.style.display = 'block';
+  fb.className = `qcm-feedback ${ok ? 'correct' : 'wrong'}`;
+  fb.innerHTML = ok
+    ? `✅ Bravo ! ${esc(expl)}`
+    : `❌ La bonne réponse était <strong>${['A','B','C','D'][correct]}</strong>. ${esc(expl)}`;
+  if (ok) { S.correct++; S.streak++; } else { S.streak = 0; }
+  updateStats(); updateProgress();
+}
+
+/* =========================================
+   VRAI / FAUX
+========================================= */
+function renderVF(qs) {
+  const wrap = document.getElementById('chatMessages');
+  qs.forEach((q, qi) => {
+    S.total++;
+    const id = `vf_${Date.now()}_${qi}`;
+    const d  = document.createElement('div');
+    d.className = 'qcm-block'; d.id = id;
+    d.innerHTML = `
+      <div class="qcm-question"><span class="q-num">VRAI / FAUX ${qi+1}</span>${esc(q.question)}</div>
+      <div class="qcm-options">
+        <button class="qcm-option" onclick="answerVF('${id}',true,${q.correct},'${safeStr(q.explanation)}')"><span class="opt-letter">✓</span>Vrai</button>
+        <button class="qcm-option" onclick="answerVF('${id}',false,${q.correct},'${safeStr(q.explanation)}')"><span class="opt-letter">✗</span>Faux</button>
+      </div>
+      <div class="qcm-feedback" id="${id}_fb"></div>`;
+    wrap.appendChild(d);
+  });
+  updateStats(); scrollBot(); updateProgress();
+}
+
+function answerVF(id, chosen, correct, expl) {
+  const b   = document.getElementById(id);
+  const ops = b.querySelectorAll('.qcm-option');
+  const fb  = document.getElementById(`${id}_fb`);
+  ops.forEach(o => o.disabled = true);
+  const ok  = chosen === correct;
+  const ci  = chosen  ? 0 : 1;
+  const ri  = correct ? 0 : 1;
+  ops[ci].classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) ops[ri].classList.add('revealed');
+  fb.style.display = 'block';
+  fb.className = `qcm-feedback ${ok ? 'correct' : 'wrong'}`;
+  fb.innerHTML = ok
+    ? `✅ Correct ! ${esc(expl)}`
+    : `❌ C'était <strong>${correct ? 'Vrai' : 'Faux'}</strong>. ${esc(expl)}`;
+  if (ok) { S.correct++; S.streak++; } else { S.streak = 0; }
+  updateStats(); updateProgress();
+}
+
+/* =========================================
+   FLASHCARDS
+========================================= */
+function renderFlash(cards) {
+  const wrap = document.getElementById('chatMessages');
+  const intro = document.createElement('div');
+  intro.className = 'msg bot';
+  intro.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">⚡ <strong>${cards.length} flashcard(s)</strong> prêtes ! Clique sur chaque carte pour la retourner.</div>`;
+  wrap.appendChild(intro);
+
+  cards.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'flashcard';
+    let flipped = false;
+    d.innerHTML = `
+      <div class="fc-side" id="fc_side_${i}">RECTO — Question</div>
+      <div class="fc-content" id="fc_cnt_${i}">${esc(c.front)}</div>
+      <div class="fc-hint">👆 Clique pour voir la réponse</div>`;
+    d.onclick = () => {
+      flipped = !flipped;
+      document.getElementById(`fc_side_${i}`).textContent = flipped ? 'VERSO — Réponse' : 'RECTO — Question';
+      document.getElementById(`fc_cnt_${i}`).textContent  = flipped ? c.back : c.front;
+      d.classList.toggle('flipped', flipped);
+      d.querySelector('.fc-hint').textContent = flipped ? '🔄 Cliquer pour revenir' : '👆 Clique pour voir la réponse';
+    };
+    wrap.appendChild(d);
+  });
+  scrollBot();
+}
+
+/* =========================================
+   MESSAGES
+========================================= */
+function addUser(txt) {
+  const wrap = document.getElementById('chatMessages');
+  const d    = document.createElement('div');
+  d.className = 'msg user';
+
+  let inner = `<div class="msg-avatar">👤</div>`;
+  if (S.images.length > 0) {
+    inner += `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+      ${S.images.map(img => `<img src="${img.url}" class="msg-image" alt="leçon">`).join('')}
+      <div class="msg-bubble">${esc(txt)}</div></div>`;
+  } else {
+    inner += `<div class="msg-bubble">${esc(txt)}</div>`;
+  }
+  d.innerHTML = inner;
+  wrap.appendChild(d);
+  scrollBot();
+}
+
+function addBot(html) {
+  const wrap = document.getElementById('chatMessages');
+  const d    = document.createElement('div');
+  d.className = 'msg bot';
+  d.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">${fmt(html)}</div>`;
+  wrap.appendChild(d);
+  scrollBot();
+}
+
+function showTyping() {
+  const wrap = document.getElementById('chatMessages');
+  const d    = document.createElement('div');
+  d.className = 'msg bot'; d.id = 'typing';
+  d.innerHTML = `<div class="msg-avatar">🤖</div>
+    <div class="typing-indicator">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>`;
+  wrap.appendChild(d); scrollBot();
+}
+function removeTyping() { const e = document.getElementById('typing'); if (e) e.remove(); }
+
+/* =========================================
+   STATS & PROGRESS
+========================================= */
+function updateStats() {
+  document.getElementById('statQuestions').textContent = S.total;
+  const p = S.total > 0 ? Math.round((S.correct / S.total) * 100) : 0;
+  document.getElementById('statScore').textContent  = p + '%';
+  document.getElementById('statStreak').textContent = '🔥' + S.streak;
+}
+
+function updateProgress() {
+  if (S.total === 0) return;
+  document.getElementById('progressSection').style.display = 'block';
+  const p = Math.round((S.correct / S.total) * 100);
+  document.getElementById('progressFill').style.width = p + '%';
+}
+
+/* =========================================
+   UTILS
+========================================= */
+function scrollBot() { const m = document.getElementById('chatMessages'); setTimeout(() => m.scrollTop = m.scrollHeight, 80); }
+function handleKeydown(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+function esc(t='') {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function safeStr(t='') {
+  return String(t).replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ').replace(/</g,'<').replace(/>/g,'>');
+}
+function fmt(t='') {
+  return esc(t)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>
